@@ -85,10 +85,18 @@ class Pokemon(object):
         self.name = pokemonDictionary['name']
         self.health = pokemonDictionary['health']
         self.dodge = pokemonDictionary['dodge']
-        self.attacks = pokemonDictionary['attacks']
+        self.attacks = []
+        for attack in pokemonDictionary['attacks']:
+            newAttack = PokemonAttack(attack['name'], attack['strength'], attack['pp'])
+            self.attacks.append(newAttack)
         self.type = pokemonDictionary['type']
         self.weakness = pokemonDictionary['weakness']
         
+class PokemonAttack(object):
+    def __init__(self, name, strength, pp):
+        self.name = name
+        self.strength = strength
+        self.pp = pp
 
 class SelectPokemon(object):
 
@@ -199,29 +207,29 @@ class Battle(object):
         print "Which attack do you choose?"
         for i in range(0,len(pokemon.attacks)):
             attack = pokemon.attacks[i]
-            print "Attack %d: %s, Strength: %d, PP: %d" % (i+1,attack['name'],attack['strength'],attack['pp'])
+            print "Attack %d: %s, Strength: %d, PP: %d" % (i+1,attack.name,attack.strength,attack.pp)
         print ""
         attackIndex = int(input('Selected attack: (1/2)'))
         print ""
         if attackIndex <= len(pokemon.attacks) and attackIndex > 0:
             attack = pokemon.attacks[attackIndex-1]
-            if attack['pp'] == 0:
-                print "Oops! You can't use %s anymore." % attack['name']
+            if attack.pp == 0:
+                print "Oops! You can't use %s anymore." % attack.name
                 print ""
                 return self.attack()
             else:
-                print "%s used %s!" % (pokemon.name,attack['name'])
-                pokemon.attacks[attackIndex-1]['pp'] -= 1
+                print "%s used %s!" % (pokemon.name,attack.name)
+                pokemon.attacks[attackIndex-1].pp -= 1
                 if self.wildPokemon.dodge >= randint(1,100):
                     print "The wild %s dodged your attack!" % self.wildPokemon.name
                     print ""
                     return self.opponent_attack()
                 else:
                     if self.wildPokemon.weakness == pokemon.type:
-                        self.wildPokemon.health -= (attack['strength'])*1.2
+                        self.wildPokemon.health -= (attack.strength)*1.2
                         print "It was super effective!"
                     else:
-                        self.wildPokemon.health -= (attack['strength'])
+                        self.wildPokemon.health -= (attack.strength)
                         print "Direct hit!"
                         
                     if self.wildPokemon.health <= 0:
@@ -240,24 +248,22 @@ class Battle(object):
         pokemon = party[activePartySlot]
         attackIndex = randint(1,2)
         attack = self.wildPokemon.attacks[attackIndex-1]
-        print "Wild %s used %s!" % (self.wildPokemon.name,attack['name'])
+        print "Wild %s used %s!" % (self.wildPokemon.name,attack.name)
         if pokemon.dodge >= randint(1,100):
             print "Wild %s's attack missed!" % self.wildPokemon.name
             return self.attack()
         else:
             if pokemon.weakness == self.wildPokemon.type:
-                pokemon.health -= attack['strength'] * 1.2
+                pokemon.health -= attack.strength * 1.2
                 print "It was super effective!"
-                if pokemon.health <= 0:
-                    pokemon.health = 0;
-                    return 'faint'
             else:
-                pokemon.health -= attack['strength']
+                pokemon.health -= attack.strength
                 print "Direct hit!"
-                if pokemon.health <= 0:
-                    pokemon.health = 0;
-                    print "%s can no longer fight" % (pokemon.name)
-                    return 'faint'
+                
+            if pokemon.health <= 0:
+                pokemon.health = 0;
+                print "%s can no longer fight" % (pokemon.name)
+                return 'faint'
             print "%s's health is now %d" % (pokemon.name,pokemon.health)
             print ""
             return self.attack()
